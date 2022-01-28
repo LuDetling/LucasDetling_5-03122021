@@ -1,41 +1,83 @@
-fetch('http://localhost:3000/api/products').then(function (response) {
-    if (response.ok) {
-        response.json().then(function (json) {
-            products = json;
-            console.log(products);
+const main = async () => {
+    const params = new URLSearchParams(document.location.search);
+    const id = params.get('id');
+    const res = await fetch(`http://localhost:3000/api/products/${id}`).then(function (response) {
+        if (!response.ok) {
+            console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+        } else {
+            response.json().then(function (json) {
+                product = json;
 
-            let url = document.location.search;
-            let urlCut = url.slice(4)
-            // récupérer tous les kanap
-            for (let i = 0; i < products.length; i++) {
-                let id = products[i]._id;
-                if(urlCut === id) {
-                    let price = products[i].price; 
-                    let nombreEntier = price.toString().slice(0, -2)
-                    let centime = price.toString().slice(-2);
+                const {
 
-                    document.querySelector(".item__img").innerHTML = `<img src="${products[i].imageUrl}" alt="${products[i].altTxt}">`;
-                    document.querySelector("#title").innerHTML = products[i].name;
-                    document.querySelector("#price").innerHTML = nombreEntier + "," + centime;
-                    document.querySelector("#description").innerHTML = products[i].description;
+                    price,
+                    name,
+                    imageUrl,
+                    altTxt,
+                    description,
+                    colors
+                } = product;
 
-                    let colors = document.querySelector("#colors");
-                    //Couleurs
-                    for(let i = 0; i < products[i].colors.length; i++) {
-                        let option = document.createElement("option");
-                        option.innerHTML = products[i].colors[i];
-                        colors.appendChild(option);
+                document.querySelector(".item__img").innerHTML = `<img src="${imageUrl}" alt="${altTxt}">`;
+                document.querySelector("#title").innerHTML = name;
+                document.querySelector("#price").innerHTML = price / 100;
+                document.querySelector("#description").innerHTML = description;
+
+                const color_select = document.querySelector("#colors");
+
+                for (color of colors) {
+                    let option = document.createElement("option");
+                    option.innerHTML = color;
+                    color_select.appendChild(option);
+                }
+
+                const quantity = document.querySelector("#quantity");
+
+
+                document.querySelector("#addToCart").addEventListener('click', () => {
+
+                    let intQuantity = parseInt(quantity.value);
+                    const kanap = {
+                        "id": id,
+                        "quantity": intQuantity,
+                        "color": color_select.value
+                    };
+                    let parse = JSON.parse(localStorage.kanap)
+
+                    if(!localStorage.kanap) {
+                        localStorage.setItem('kanap', JSON.stringify(kanap));
+                    } else if (!parse.id) {
+                        console.log(parse.id);
 
                     }
 
-                
-                }
-            }
 
-        });
-    } else {
-        console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
-    }
-});
+                    // let stringifyKanap = JSON.stringify(kanap);
+                    // let parseKanap = JSON.parse(stringifyKanap);
+
+                    // if (!localStorage.kanap) {
+                        
+                    //     localStorage.setItem('kanap', stringifyKanap);
+
+                    // } else {
+
+                    // }
+                })
+
+                // créer 
+
+                // si il y n'y a pas l'id ajouter
+
+
+            });
+        }
+    });
+}
+
+
+main();
+
+
+
 
 // récupérer le nombre d'éléments qu'on veut dans le local storage
