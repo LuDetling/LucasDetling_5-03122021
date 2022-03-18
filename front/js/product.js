@@ -54,13 +54,10 @@ const main = async () => {
 
         const array = JSON.parse(localStorage.getItem('kanap')) || [];
 
-        //findindex permet de rechercher dans l'index de array 
         const key = array.findIndex(
             (e) => e.id == kanap.id && e.color == kanap.color
         );
-        console.log(array[key]);
-        // si la fonction key != -1 ce qui veut dire que la condition existe déjà dans array.findindex 
-        // alors la quantité de kanap augmente par rapport à la donnée stocké dans array avec la fonction key
+
         if (key != -1) {
             kanap.quantity += array[key].quantity;
             array[key] = kanap;
@@ -76,16 +73,7 @@ const main = async () => {
 
     })
 
-    // créer 
-
-    // si il y n'y a pas l'id ajouter
 
 }
 
-
 main();
-
-
-
-
-// récupérer le nombre d'éléments qu'on veut dans le local storage
