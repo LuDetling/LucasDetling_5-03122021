@@ -36,13 +36,13 @@ const main = async () => {
         // CREATION H3
         let h3 = document.createElement("h3");
         h3.setAttribute("class", "productName");
-        h3.innerHTML = name;
+        h3.innerText = name;
         article.appendChild(h3);
 
         // CREATION P
         let p = document.createElement("p");
         p.setAttribute("class", "productDescription");
-        p.innerHTML = description;
+        p.innerText = description;
         article.appendChild(p);
     }
 };

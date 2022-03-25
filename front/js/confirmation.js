@@ -7,7 +7,7 @@ const main = () => {
 
     // AFFICHER ORDERID
     const documentOrderId = document.querySelector("#orderId");
-    documentOrderId.innerHTML = orderId;
+    documentOrderId.innerText = orderId;
     if(orderId != null) {
         localStorage.clear();
     }

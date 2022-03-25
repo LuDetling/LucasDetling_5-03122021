@@ -18,16 +18,22 @@ const main = async () => {
         colors
     } = products;
 
-    document.querySelector(".item__img").innerHTML = `<img src="${imageUrl}" alt="${altTxt}">`;
-    document.querySelector("#title").innerHTML = name;
-    document.querySelector("#price").innerHTML = price;
-    document.querySelector("#description").innerHTML = description;
+    // AFFICHER IMG
+    const divImg = document.querySelector(".item__img");
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.alt = altTxt;
+    divImg.appendChild(img);
+
+    document.querySelector("#title").innerText = name;
+    document.querySelector("#price").innerText = price;
+    document.querySelector("#description").innerText = description;
 
     const color_select = document.querySelector("#colors");
 
     for (const color of colors) {
         let option = document.createElement("option");
-        option.innerHTML = color;
+        option.innerText = color;
         color_select.appendChild(option);
     }
 
@@ -45,6 +51,16 @@ const main = async () => {
         };
         if (!intQuantity) {
             alert("il faut choisir une quantité");
+            return;
+        }
+        if (intQuantity >= 101) {
+            intQuantity = 100;
+            alert("Vous ne pouvez en ajouter que 100 par 100");
+            return;
+        }
+        if (intQuantity < 1) {
+            intQuantity = 1;
+            alert("Vous ne pouvez pas allez en dessous de 1");
             return;
         }
         if (!color) {
@@ -66,14 +82,9 @@ const main = async () => {
 
         }
 
-
         localStorage.setItem("kanap", JSON.stringify(array));
 
-
-
     })
-
-
 }
 
 main();
