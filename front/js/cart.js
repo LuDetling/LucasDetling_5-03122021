@@ -1,3 +1,86 @@
+/* Declaring variables. */
+let parseItems = JSON.parse(localStorage.getItem("kanap"));
+const form = document.querySelector(".cart__order__form");
+const cart__items = document.querySelector("#cart__items");
+
+/**
+ * It checks if the form is valid and if not, it displays an error message.
+ * @param e - the event object
+ * @returns An object with the following properties:
+ * firstName: true or false
+ * lastName: true or false
+ * address: true or false
+ * city: true or false
+ * email: true or false
+ */
+const verifierFormulaire = (form) => {
+
+  const regexEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  const regexUsername = /[a-zA-Z][a-zA-Z0-9-_]{3,32}/;
+
+  let identifiant = {
+    firstName: regexUsername.test(form.firstName.value),
+    lastName: regexUsername.test(form.lastName.value),
+    address: form.address.value,
+    city: form.city.value,
+    email: regexEmail.test(form.email.value)
+  }
+
+  // AFFICHAGE ERREUR SI LE FORMULAIRE N'EST PAS BON
+  if (!identifiant.firstName) {
+    document.querySelector("#firstNameErrorMsg").innerText = "Prénom invalide";
+  } else {
+    document.querySelector("#firstNameErrorMsg").innerText = "";
+  }
+  if (!identifiant.lastName) {
+    document.querySelector("#lastNameErrorMsg").innerText = "Nom invalide";
+  } else {
+    document.querySelector("#lastNameErrorMsg").innerText = "";
+  }
+  if (!identifiant.address) {
+    document.querySelector("#addressErrorMsg").innerText = "Adresse invalide";
+    identifiant.address = false;
+  } else {
+    document.querySelector("#addressErrorMsg").innerText = "";
+    identifiant.address = true;
+  }
+  if (!identifiant.city) {
+    document.querySelector("#cityErrorMsg").innerText = "Ville invalide";
+    identifiant.city = false;
+  } else {
+    document.querySelector("#cityErrorMsg").innerText = "";
+    identifiant.city = true;
+  }
+  if (!identifiant.email) {
+    document.querySelector("#emailErrorMsg").innerText = "Email invalide";
+  } else {
+    document.querySelector("#emailErrorMsg").innerText = "";
+  }
+
+  return identifiant
+}
+
+
+/**
+ * If there are no items in the cart, create a paragraph element and append it to the cart__items
+ * element.
+ * @param parseItems - the parsed JSON data
+ */
+const panierVide = () => {
+
+  // CREATION P
+  const panierVide = document.createElement("p");
+  panierVide.innerText = "Votre panier est vide";
+  cart__items.appendChild(panierVide);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    verifierFormulaire(form);
+  })
+}
+
+/**
+ * An async function that returns a promise.
+ */
 const main = async () => {
   const response = await fetch(`http://localhost:3000/api/products/`);
   if (!response.ok) {
@@ -5,30 +88,22 @@ const main = async () => {
     return;
   }
 
-  // DECLARATION VARIABLES
+  /* Assigning the JSON data to the products variable. */
   const products = await response.json();
-  let parseItems = JSON.parse(localStorage.getItem("kanap"));
-  const cart__items = document.querySelector("#cart__items");
 
-  // SI PANIER VIDE
-  const pannierVide = (e) => {
-    if (parseItems == null || parseItems.length == 0) {
-
-      // CREATION P
-      let panierVide = document.createElement("p");
-      panierVide.innerText = "Votre panier est vide";
-      cart__items.appendChild(panierVide);
-
-    }
+  /* It checks if there are no items in the cart. If there are no items in the cart, it calls the
+  panierVide function. */
+  if (!parseItems) {
+    panierVide();
+    return;
   }
-  pannierVide();
-  // ITEM DANS LE STORAGE
+  /**
+   * It creates a bunch of HTML elements and adds them to the DOM.
+   */
   const createItems = () => {
     for (const parseItem of parseItems) {
-      // AFFICHER LES ITEMS DU LOCALSTORAGE
 
       const product = products.find(item => item._id == parseItem.id);
-
       const {
         _id,
         price,
@@ -127,18 +202,27 @@ const main = async () => {
       cart__item__content__settings__delete.appendChild(supprimer);
 
 
-      //SUPPRIMER UN ITEM DANS LE PANIER
+      /* Removing the item from the cart. */
       article.querySelector(".deleteItem").addEventListener("click", () => {
         const filtrer = parseItems.filter(item => item.id !== parseItem.id || item.color !== parseItem.color);
         localStorage.setItem("kanap", JSON.stringify(filtrer));
         parseItems = JSON.parse(localStorage.getItem("kanap"));
         cart__items.removeChild(article);
         totalItems();
-        pannierVide();
+        if (parseItems.length == 0) {
+          localStorage.removeItem("kanap");
+          panierVide();
+        }
       })
 
-      //MODIFIER LA QUANTITE D'UN ITEM DANS LE PANIER
 
+      /* An event listener that listens for a change in the quantity of an item. If the quantity is
+      less than or equal to 0, it sets the quantity to 1. If the quantity is greater than or equal
+      to 101, it sets the quantity to 100. It then loops through the array of objects and finds the
+      object that matches the id of the object in the array and the color of the object in the
+      array. It then returns the object with the quantity set to the value of the input. It then
+      sets the local storage to the modified array of objects. It then sets the parseItems variable
+      to the parsed JSON data from the local storage. It then calls the totalItems function. */
       article.querySelector(".itemQuantity").addEventListener("change", (e) => {
         const value = e.target.value;
         if (value <= 0) {
@@ -162,6 +246,11 @@ const main = async () => {
     }
   }
   createItems();
+  /**
+   * It loops through the array of objects, finds the product that matches the id of the object in the
+   * array, and then multiplies the quantity of the object in the array by the price of the product
+   * that matches the id of the object in the array.
+   */
   const totalItems = () => {
     const totalQty = document.querySelector('#totalQuantity');
     const totalPrice = document.querySelector('#totalPrice');
@@ -184,122 +273,60 @@ const main = async () => {
 
   totalItems();
 
-  // VALIDER LA COMMANDE
-  const form = document.querySelector(".cart__order__form");
-
-  const verifierFormulaire = (e) => {
-
-    const regexEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    const regexUsername = /[a-zA-Z][a-zA-Z0-9-_]{3,32}/;
-
-    let identifiant = {
-      firstName: regexUsername.test(form.firstName.value),
-      lastName: regexUsername.test(form.lastName.value),
-      address: form.address.value,
-      city: form.city.value,
-      email: regexEmail.test(form.email.value)
-    }
-
-    // AFFICHAGE ERREUR SI LE FORMULAIRE N'EST PAS BON
-    if (!identifiant.firstName) {
-      document.querySelector("#firstNameErrorMsg").innerText = "Prénom invalide";
-    } else {
-      document.querySelector("#firstNameErrorMsg").innerText = "";
-    }
-    if (!identifiant.lastName) {
-      document.querySelector("#lastNameErrorMsg").innerText = "Nom invalide";
-    } else {
-      document.querySelector("#lastNameErrorMsg").innerText = "";
-    }
-    if (!identifiant.address) {
-      document.querySelector("#addressErrorMsg").innerText = "Adresse invalide";
-      identifiant.address = false;
-    } else {
-      document.querySelector("#addressErrorMsg").innerText = "";
-      identifiant.address = true;
-    }
-    if (!identifiant.city) {
-      document.querySelector("#cityErrorMsg").innerText = "Ville invalide";
-      identifiant.city = false;
-    } else {
-      document.querySelector("#cityErrorMsg").innerText = "";
-      identifiant.city = true;
-    }
-    if (!identifiant.email) {
-      document.querySelector("#emailErrorMsg").innerText = "Email invalide";
-    } else {
-      document.querySelector("#emailErrorMsg").innerText = "";
-    }
-
-    return identifiant
-  }
-
-
-  // PASSER LA COMMANDE
-
+  /* A function that is called when the form is submitted. */
   const postItem = () => {
 
-    form.order.addEventListener("click", async (e) => {
+    form.addEventListener("submit", async (e) => {
 
-      verifierFormulaire();
-      const verif = verifierFormulaire();
+      verifierFormulaire(form);
+      const verif = verifierFormulaire(form);
       const tableauVerif = Object.values(verif);
-      e.preventDefault()
+      e.preventDefault();
 
       if (tableauVerif.includes(true) && tableauVerif.includes(false) || tableauVerif.includes(false)) {
-        e.preventDefault();
+        return;
+      }
+      // REVERIFICATION SI LE LOCALSTORAGE EST VIDE
+      if (!parseItems || parseItems.length == 0) {
+        return;
       } else {
-        e.preventDefault();
-        // REVERIFICATION SI LE LOCALSTORAGE EST VIDE
-        if (parseItems === null) {
+        const produits = [];
 
-          let panierVide = document.createElement("p");
-          panierVide.innerText = "Votre panier est vide";
-          cart__items.appendChild(panierVide);
-
-        } else {
-
-          const produits = [];
-
-          for (const parseItem of parseItems) {
-            produits.push(parseItem.id);
-          }
-
-          // CREATION OBJET ORDER A POST
-          const order = {
-            contact: {
-              firstName: form.firstName.value,
-              lastName: form.lastName.value,
-              address: form.address.value,
-              city: form.city.value,
-              email: form.email.value,
-            },
-            products: produits,
-          };
-
-          // POSTER LA COMMANDE
-          const passerCommande = await fetch(`http://localhost:3000/api/products/order`, {
-            method: "POST",
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(order),
-          });
-          if (!passerCommande.ok) {
-            console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
-            return;
-          }
-          const json = await passerCommande.json();
-          const order_id = json.orderId;
-          location.href = `confirmation.html?order_id=${order_id}`;
+        for (const parseItem of parseItems) {
+          produits.push(parseItem.id);
         }
+
+        const order = {
+          contact: {
+            firstName: form.firstName.value,
+            lastName: form.lastName.value,
+            address: form.address.value,
+            city: form.city.value,
+            email: form.email.value,
+          },
+          products: produits,
+        };
+
+        const passerCommande = await fetch(`http://localhost:3000/api/products/order`, {
+          method: "POST",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(order),
+        });
+        if (!passerCommande.ok) {
+          console.log('Network request for products.json failed with response ' + response.status + ': ' + response.statusText);
+          return;
+        }
+        const json = await passerCommande.json();
+        const order_id = json.orderId;
+        location.href = `confirmation.html?order_id=${order_id}`;
       }
 
     })
   }
   postItem();
-
 }
 
 main();
